@@ -22,7 +22,6 @@ function transformData(source) {
     element.placeName = element.values[0].placeName.value;
     element.long = element.values[0].long.value;
     element.lat = element.values[0].lat.value;
-    console.log(element.amount)
   });
   return transformed;
 }
@@ -33,34 +32,36 @@ function getDataFrom(queryLink) {
 
 const zoom = d3
   .zoom()
-  .scaleExtent([0.3, 7])
-  .on("zoom", zoomHandler);
+  .scaleExtent([.5, 20])
+  .on('zoom', zoomHandler);
 
 function zoomHandler() {
-  g.attr("transform", d3.event.transform);
+  g.attr('transform', d3.event.transform);
+  adjustCirclesToZoomLevel(d3.event.transform.k);
 }
+
 
 function mouseOverHandler(d, i) {
   
   let element = d3.select(this);
-  if (element.attr("fill") !== "#00aaa0") {
-    element.attr("fill", "#9aeae6")
+  if (element.attr('fill') !== '#00aaa0') {
+    element.attr('fill', '#9aeae6')
   }
 }
 
 function mouseOutHandler(d, i) {
   let element = d3.select(this);
-  if (element.attr("fill") !== "#00aaa0") {
-    element.attr("fill", "#c1eae8")
+  if (element.attr('fill') !== '#00aaa0') {
+    element.attr('fill', '#c1eae8')
   }
 }
 
 function clickHandler(d, i) {
-  d3.select("#map__text").text(`You've selected ${d.properties.NAME_1}`)
-  d3.selectAll('.province').attr("fill", "#c1eae8");
-  d3.selectAll('.province').attr("stroke-width", ".5");
-  d3.select(this).attr("fill", "#00aaa0")
-  d3.select(this).attr("stroke-width", '2')
+  d3.select('#map__text').text(`You've selected ${d.properties.NAME_1}`)
+  d3.selectAll('.province').attr('fill', '#c1eae8');
+  d3.selectAll('.province').attr('stroke-width', '.5');
+  d3.select(this).attr('fill', '#00aaa0')
+  d3.select(this).attr('stroke-width', '2')
 }
 
 function clickToZoom(zoomStep) {
@@ -70,16 +71,16 @@ function clickToZoom(zoomStep) {
     .call(zoom.scaleBy, zoomStep);
 }
 
-d3.select("#btn-zoom--in").on("click", () => clickToZoom(2));
-d3.select("#btn-zoom--out").on("click", () => clickToZoom(.5));
+d3.select('#btn-zoom--in').on('click', () => clickToZoom(2));
+d3.select('#btn-zoom--out').on('click', () => clickToZoom(.5));
 
 const svg = d3
-  .select("#map__container")
-  .append("svg")
-  .attr("width", "100%")
-  .attr("height", "100%")
+  .select('#map__container')
+  .append('svg')
+  .attr('width', '100%')
+  .attr('height', '100%')
 
-const g = svg.call(zoom).append("g");
+const g = svg.call(zoom).append('g');
 
 const projection = d3
   .geoMercator()
@@ -93,55 +94,97 @@ const color = d3.scaleOrdinal(d3.schemeCategory10.slice(1, 4));
 
   function renderMap(root) {
   g
-    .append("g")
-    .selectAll("path")
+    .append('g')
+    .selectAll('path')
     .data(root.features)
     .enter()
-    .append("path")
-    .attr("class", "province")
-    .attr("d", path)
-    .attr("fill", "#c1eae8")
-    .attr("stroke", "#FFF")
-    .attr("stroke-width", 0.5)
-    .on("mouseover", mouseOverHandler)
-    .on("mouseout", mouseOutHandler)
-    .on("click", clickHandler);
-
-  // g
-  //   .append("g")
-  //   .selectAll("text")
-  //   .data(root.features)
-  //   .enter()
-  //   .append("text")
-  //   .attr("transform", d => `translate(${path.centroid(d)})`)
-  //   .attr("text-anchor", "middle")
-  //   .attr("font-size", 10)
-  //   .attr("dx", d => _.get(d, "offset[0]", null))
-  //   .attr("dy", d => _.get(d, "offset[1]", null))
-  //   .text(d => d.properties.NAME_1);
-
+    .append('path')
+    .attr('class', 'province')
+    .attr('d', path)
+    .attr('fill', '#c1eae8')
+    .attr('stroke', '#FFF')
+    .attr('stroke-width', 0.5)
+    .on('mouseover', mouseOverHandler)
+    .on('mouseout', mouseOutHandler)
+    .on('click', clickHandler);
   }
   
   function renderObjects(objects) {
     g
-    .append("g")
-    .selectAll("circle")
+    .append('g')
+    .selectAll('.datapoint')
     .data(objects)
     .enter()
-		.append("circle")
-		.attr("cx", d => projection([d.long, d.lat])[0])
-		.attr("cy", d => projection([d.long, d.lat])[1])
-		.attr("r", d => {
-      if ((d.amount*.05) < 2) {
-        return 2;
+    .append('circle')
+    .attr('class', 'datapoint')
+		.attr('cx', d => projection([d.long, d.lat])[0])
+		.attr('cy', d => projection([d.long, d.lat])[1])
+		.attr('fill', '#00827b')
+    .attr('fill-opacity', .5)
+
+    adjustCirclesToZoomLevel(1);
+  }
+
+  function adjustCirclesToZoomLevel(zoomLevel) {
+    
+    let minRadius = (zoomLevel/3 < 2) ? 3 - (zoomLevel/3) : 1;
+    let maxRadius = (zoomLevel*7 < 37.5) ? 40 - (zoomLevel*7) : 2.5;
+    let maxValueInData = 200;
+    let minValueInData = 3;
+    let maxZoomLevel = 20;
+    let factor = (maxRadius-minRadius) / (maxValueInData-minValueInData);
+
+    g.selectAll('.datapoint')
+    .attr('r', d => {
+      if (d.amount*factor < minRadius) {
+        return minRadius;
       }
-      else if (d.amount*.05 > 10) {
-        return 15;
+      else if (d.amount*factor > maxRadius) {
+        return maxRadius;
       }
       else {
-        return d.amount*.05;
+        return d.amount*factor;
       }
     })
-		.attr("fill", "#00827b")
-    .attr('fill-opacity', .5)
+    if (zoomLevel < maxZoomLevel/2) {
+      g.selectAll('.datapoint')
+      .attr('fill-opacity', (.3 + .7/zoomLevel))
+    } else {
+      g.selectAll('.datapoint')
+      .attr('fill-opacity', 1)
+    }
+    easterEgg(zoomLevel, maxZoomLevel);
+  }
+
+  function easterEgg(zoomLevel, maxZoomLevel) {
+    let mickey = [
+      {
+        x: 713.1922842768404,
+        y: 357.39588549979203,
+        r: 2.253807106598985      
+      },
+      {
+        x: 712.6200955348663,
+        y: 354.3623462592666,
+        r: 1  
+      },
+      {
+        x: 715.9848110800312,
+        y: 355.9852290633346,
+        r: 1  
+      }
+    ]
+
+    if (zoomLevel > maxZoomLevel /2) {
+      g
+      .selectAll('.mickey')
+      .data(mickey)
+      .enter()
+      .append('circle')
+      .attr('class', 'mickey')
+      .attr('cx', d => d.x)
+      .attr('cy', d => d.y)
+      .attr('r', d => d.r)
+      .attr('fill', 'black')
+    }
   }
