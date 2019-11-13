@@ -104,10 +104,35 @@ function mouseOutHandler(d, i) {
 }
 
 // updates the selected area on click an changes it's fill color
-function clickHandler(d, i) {
+function areaClickHandler(d) {
   d3.select('#map_text').text(`You've selected ${d.properties.NAME_1}`)
   d3.selectAll('.area').attr('fill', 'white');
   d3.select(this).attr('fill', '#00aaa0')
+}
+
+// loads a list of selected objects
+function objectClickHandler(d, i) {
+  console.log(d);
+  let newHtml =`
+  <h3>List of statues found at ${d.placeName}</h3>
+  <ol class="item-list">
+  `;
+
+  d.values.forEach( value => {
+    newHtml += `
+      <li>${value.title.value}
+        <ul class="sub-item-list">
+          <li>Identifier: ${value.identifierSample.value}</li>
+          <li>Extent: ${value.extent.value}</li>
+          <li>Image Link: <a href="${value.imageLink.value}">${value.imageLink.value}</a></li>
+          <li>Origin location: ${value.placeName.value} (${value.lat.value}, ${value.long.value})</li>
+        </ul>
+      </li>
+    `;
+  });
+
+  newHtml += "</ol>";
+  document.querySelector('.info').innerHTML = newHtml;
 }
 
 // makes it possible to zoom on click with adjustable steps
@@ -156,7 +181,7 @@ function renderMap(geoJson) {
   .attr('stroke-width', 0.5)
   .on('mouseover', mouseOverHandler)
   .on('mouseout', mouseOutHandler)
-  .on('click', clickHandler);
+  .on('click', areaClickHandler);
 }
 
 // renders the datapoints
@@ -176,6 +201,7 @@ function renderObjects(objects) {
   .attr('cy', d => projection([d.long, d.lat])[1])
   .attr('fill', '#00827b')
   .attr('fill-opacity', .5)
+  .on('click', objectClickHandler);
   adjustCirclesToZoomLevel(1);
 }
 

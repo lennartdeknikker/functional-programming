@@ -21,6 +21,7 @@ body {
   height: 75%;
   background-color: c1eae8;
   min-width: 20rem;
+  min-height: 75vh;
   width: 100%;
 }
 
@@ -68,6 +69,7 @@ header {
   align-items: center;
   flex-direction: column;
   height: 20%;
+  min-height: 15vh;
   min-width: 20rem;
   width: 100%;
 }
@@ -79,4 +81,16 @@ h3, i {
 
 h3 {
   margin: 0 0 1em;
+}
+
+.info h3 {
+  margin: 1em 1em;
+}
+
+.item-list {
+  font-weight: bold;
+}
+
+.sub-item-list {
+  font-weight: normal;
 }
