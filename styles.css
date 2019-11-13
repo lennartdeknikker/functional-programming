@@ -1,0 +1,40 @@
+/* 
+#ffffff
+#c1eae8
+#00827b
+#00aaa0 
+*/
+
+html, body {
+  height: 100%;
+  background-color: #c1eae8;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+#map__container {
+  height: 70%;
+  background-color: white;
+}
+
+#btn-zoom {
+  position: absolute;
+  top: 45px;
+  left: 10px;
+  z-index: 10;
+}
+
+#map__text {
+  position: absolute;
+  top: 0px;
+  left: 10px;
+  z-index: 10;
+}
+
+h3 {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
