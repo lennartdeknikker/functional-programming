@@ -51,9 +51,23 @@ d3.json(endpoint + "?query=" + encodeURIComponent(query) + "&format=json")
 }
 
 // This function transforms data to group on locations, stores those in an object with amounts per location
+/*
 function transformData(source) {
   let transformed = d3.nest()
   .key(function(d) { return `${d.long.value}, ${d.lat.value}`; })
+  .entries(source);
+  transformed.forEach(element => {
+    element.amount = element.values.length;
+    element.placeName = element.values[0].placeName.value;
+    element.long = element.values[0].long.value;
+    element.lat = element.values[0].lat.value;
+  });
+  return transformed;
+}
+*/
+function transformData(source) {
+  let transformed = d3.nest()
+  .key(function(d) { return d.placeName.value})
   .entries(source);
   transformed.forEach(element => {
     element.amount = element.values.length;
@@ -85,14 +99,14 @@ function mouseOverHandler(d, i) {
 function mouseOutHandler(d, i) {
   let element = d3.select(this);
   if (element.attr('fill') !== '#00aaa0') {
-    element.attr('fill', '#c1eae8')
+    element.attr('fill', 'white')
   }
 }
 
 // updates the selected area on click an changes it's fill color
 function clickHandler(d, i) {
-  d3.select('#map__text').text(`You've selected ${d.properties.NAME_1}`)
-  d3.selectAll('.area').attr('fill', '#c1eae8');
+  d3.select('#map_text').text(`You've selected ${d.properties.NAME_1}`)
+  d3.selectAll('.area').attr('fill', 'white');
   d3.select(this).attr('fill', '#00aaa0')
 }
 
@@ -109,7 +123,7 @@ function clickToZoom(zoomStep) {
 
 // loads the svg in the map container
 const svg = d3
-  .select('#map__container')
+  .select('#map_container')
   .append('svg')
   .attr('width', '100%')
   .attr('height', '100%')
@@ -137,8 +151,8 @@ function renderMap(geoJson) {
   .append('path')
   .attr('class', 'area')
   .attr('d', path)
-  .attr('fill', '#c1eae8')
-  .attr('stroke', '#FFF')
+  .attr('fill', 'white')
+  .attr('stroke', '#c1eae8')
   .attr('stroke-width', 0.5)
   .on('mouseover', mouseOverHandler)
   .on('mouseout', mouseOutHandler)
