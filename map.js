@@ -1,18 +1,56 @@
-// render map
-async function loadMap() {
-  await getDataFrom('https://raw.githubusercontent.com/rifani/geojson-political-indonesia/master/IDN_adm_1_province.json')
-  .then(mapData => renderMap(mapData))
-  // render data points
-  .then(
-    await getDataFrom('https://api.data.netwerkdigitaalerfgoed.nl/datasets/ivo/NMVW/services/NMVW-29/sparql?default-graph-uri=&query=PREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%0D%0APREFIX+dc%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%0D%0APREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E%0D%0APREFIX+skos%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23%3E%0D%0APREFIX+edm%3A+%3Chttp%3A%2F%2Fwww.europeana.eu%2Fschemas%2Fedm%2F%3E%0D%0APREFIX+foaf%3A+%3Chttp%3A%2F%2Fxmlns.com%2Ffoaf%2F0.1%2F%3E%0D%0APREFIX+hdlh%3A+%3Chttps%3A%2F%2Fhdl.handle.net%2F20.500.11840%2Ftermmaster%3E%0D%0APREFIX+wgs84%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3E%0D%0APREFIX+geo%3A+%3Chttp%3A%2F%2Fwww.opengis.net%2Font%2Fgeosparql%23%3E%0D%0APREFIX+skos%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23%3E%0D%0APREFIX+gn%3A+%3Chttp%3A%2F%2Fwww.geonames.org%2Fontology%23%3E%0D%0APREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%0D%0APREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%0D%0ASELECT+%28SAMPLE%28%3Fidentifier%29+AS+%3FidentifierSample%29+%3Ftitle+%3FplaceName+%3FimageLink+%3Fextent+%3Flat+%3Flong+WHERE+%7B%0D%0A+++%3Chttps%3A%2F%2Fhdl.handle.net%2F20.500.11840%2Ftermmaster7745%3E+skos%3Anarrower*+%3Fplace+.%0D%0A+++%09%3Fplace+skos%3AprefLabel+%3FplaceName+.%0D%0A+++VALUES+%3Ftype+%7B+%22Voorouderbeelden%22+%22Voorouderbeeld%22+%22voorouderbeelden%22+%22voorouderbeeld%22+%7D%0D%0A+++%3Fcho+dct%3Aspatial+%3Fplace+%3B%0D%0A++++++++dc%3Atitle+%3Ftitle+%3B%0D%0A+++++++dc%3Atype+%3Ftype+%3B%0D%0A+++++++dc%3Aidentifier+%3Fidentifier+%3B%0D%0A+++++++dct%3Aextent+%3Fextent+%3B%0D%0A++++++edm%3AisShownBy+%3FimageLink+.%0D%0A+++%3Fplace+skos%3AexactMatch%2Fwgs84%3Alat+%3Flat+.%0D%0A+++%3Fplace+skos%3AexactMatch%2Fwgs84%3Along+%3Flong+.%0D%0A%7D%0D%0AGROUP+BY+%3Fidentifier+%3Ftitle+%3Fplace+%3FplaceName+%3Ftype+%3FimageLink+%3Flat+%3Flong+%3Fextent&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on')
-    .then(objects => {
-      renderObjects(transformData(objects.results.bindings));
-    })
-  );
+// endpoint and query definitions
+const settings = {
+  scaleExtent: [.5, 20],
+  minValueInData: 3,
+  maxValueInData: 200
 }
 
-loadMap();
+const endpoint = "https://api.data.netwerkdigitaalerfgoed.nl/datasets/ivo/NMVW/services/NMVW-29/sparql";
+const queryAncestorStatues = `
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX edm: <http://www.europeana.eu/schemas/edm/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX hdlh: <https://hdl.handle.net/20.500.11840/termmaster>
+PREFIX wgs84: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX gn: <http://www.geonames.org/ontology#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT (SAMPLE(?identifier) AS ?identifierSample) ?title ?placeName ?imageLink ?extent ?lat ?long WHERE {
+  <https://hdl.handle.net/20.500.11840/termmaster7745> skos:narrower* ?place .
+  ?place skos:prefLabel ?placeName .
+  VALUES ?type { "Voorouderbeelden" "Voorouderbeeld" "voorouderbeelden" "voorouderbeeld" }
+  ?cho    dct:spatial   ?place ;
+          dc:title      ?title ;
+          dc:type       ?type ;
+          dc:identifier ?identifier ;
+          dct:extent    ?extent ;
+          edm:isShownBy ?imageLink .
+  ?place  skos:exactMatch/wgs84:lat   ?lat .
+  ?place  skos:exactMatch/wgs84:long  ?long .
+}
+GROUP BY ?identifier ?title ?place ?placeName ?type ?imageLink ?lat ?long ?extent
+`;
 
+// this code loads the map, then loads the data
+loadMap('https://raw.githubusercontent.com/rifani/geojson-political-indonesia/master/IDN_adm_1_province.json')
+.then(loadData(endpoint, queryAncestorStatues));
+
+async function loadMap(geoJson) {
+d3.json(geoJson)
+.then(mapData => renderMap(mapData))
+}
+
+function loadData(endpoint, query) {
+d3.json(endpoint + "?query=" + encodeURIComponent(query) + "&format=json")
+.then(objects => { renderObjects(transformData(objects.results.bindings)) })
+}
+
+// This function transforms data to group on locations, stores those in an object with amounts per location
 function transformData(source) {
   let transformed = d3.nest()
   .key(function(d) { return `${d.long.value}, ${d.lat.value}`; })
@@ -26,13 +64,10 @@ function transformData(source) {
   return transformed;
 }
 
-function getDataFrom(queryLink) {
-  return d3.json(queryLink);
-};
-
+// adds zoom functionality to map
 const zoom = d3
   .zoom()
-  .scaleExtent([.5, 20])
+  .scaleExtent(settings.scaleExtent)
   .on('zoom', zoomHandler);
 
 function zoomHandler() {
@@ -40,15 +75,13 @@ function zoomHandler() {
   adjustCirclesToZoomLevel(d3.event.transform.k);
 }
 
-
+// changes fill color of areas on mouse over and mouse out
 function mouseOverHandler(d, i) {
-  
   let element = d3.select(this);
   if (element.attr('fill') !== '#00aaa0') {
     element.attr('fill', '#9aeae6')
   }
 }
-
 function mouseOutHandler(d, i) {
   let element = d3.select(this);
   if (element.attr('fill') !== '#00aaa0') {
@@ -56,13 +89,16 @@ function mouseOutHandler(d, i) {
   }
 }
 
+// updates the selected area on click an changes it's fill color
 function clickHandler(d, i) {
   d3.select('#map__text').text(`You've selected ${d.properties.NAME_1}`)
-  d3.selectAll('.province').attr('fill', '#c1eae8');
-  d3.selectAll('.province').attr('stroke-width', '.5');
+  d3.selectAll('.area').attr('fill', '#c1eae8');
   d3.select(this).attr('fill', '#00aaa0')
-  d3.select(this).attr('stroke-width', '2')
 }
+
+// makes it possible to zoom on click with adjustable steps
+d3.select('#btn-zoom--in').on('click', () => clickToZoom(2));
+d3.select('#btn-zoom--out').on('click', () => clickToZoom(.5));
 
 function clickToZoom(zoomStep) {
   svg
@@ -71,17 +107,17 @@ function clickToZoom(zoomStep) {
     .call(zoom.scaleBy, zoomStep);
 }
 
-d3.select('#btn-zoom--in').on('click', () => clickToZoom(2));
-d3.select('#btn-zoom--out').on('click', () => clickToZoom(.5));
-
+// loads the svg in the map container
 const svg = d3
   .select('#map__container')
   .append('svg')
   .attr('width', '100%')
   .attr('height', '100%')
 
+// adds the zoom functionality to the svg
 const g = svg.call(zoom).append('g');
 
+// map projection settings
 const projection = d3
   .geoMercator()
   .center([120, -5])
@@ -89,102 +125,70 @@ const projection = d3
   .translate([window.innerWidth / 1.8, window.innerHeight/2.3]);
 
 const path = d3.geoPath().projection(projection);
-const color = d3.scaleOrdinal(d3.schemeCategory10.slice(1, 4));
 
-
-  function renderMap(root) {
+// renders the map from a given geoJson
+function renderMap(geoJson) {
   g
-    .append('g')
-    .selectAll('path')
-    .data(root.features)
-    .enter()
-    .append('path')
-    .attr('class', 'province')
-    .attr('d', path)
-    .attr('fill', '#c1eae8')
-    .attr('stroke', '#FFF')
-    .attr('stroke-width', 0.5)
-    .on('mouseover', mouseOverHandler)
-    .on('mouseout', mouseOutHandler)
-    .on('click', clickHandler);
-  }
-  
-  function renderObjects(objects) {
-    g
-    .append('g')
-    .selectAll('.datapoint')
-    .data(objects)
-    .enter()
-    .append('circle')
-    .attr('class', 'datapoint')
-		.attr('cx', d => projection([d.long, d.lat])[0])
-		.attr('cy', d => projection([d.long, d.lat])[1])
-		.attr('fill', '#00827b')
-    .attr('fill-opacity', .5)
+  .append('g')
+  .attr('class', 'g-map')
+  .selectAll('path')
+  .data(geoJson.features)
+  .enter()
+  .append('path')
+  .attr('class', 'area')
+  .attr('d', path)
+  .attr('fill', '#c1eae8')
+  .attr('stroke', '#FFF')
+  .attr('stroke-width', 0.5)
+  .on('mouseover', mouseOverHandler)
+  .on('mouseout', mouseOutHandler)
+  .on('click', clickHandler);
+}
 
-    adjustCirclesToZoomLevel(1);
-  }
+// renders the datapoints
+function renderObjects(objects) {
+  g
+  .append('g')
+  .attr('class', 'g-datapoints')
+  .selectAll('.datapoint')
+  .data(objects)
+  .enter()
+  .append('circle')
+  .attr('class', 'datapoint')
+  .attr('data-place', d => d.placeName)
+  .attr('data-long', d => d.long)
+  .attr('data-lat', d => d.lat)
+  .attr('cx', d => projection([d.long, d.lat])[0])
+  .attr('cy', d => projection([d.long, d.lat])[1])
+  .attr('fill', '#00827b')
+  .attr('fill-opacity', .5)
+  adjustCirclesToZoomLevel(1);
+}
 
-  function adjustCirclesToZoomLevel(zoomLevel) {
-    
-    let minRadius = (zoomLevel/3 < 2) ? 3 - (zoomLevel/3) : 1;
-    let maxRadius = (zoomLevel*7 < 37.5) ? 40 - (zoomLevel*7) : 2.5;
-    let maxValueInData = 200;
-    let minValueInData = 3;
-    let maxZoomLevel = 20;
-    let factor = (maxRadius-minRadius) / (maxValueInData-minValueInData);
+// adjusts the circles to the zoomlevel
+function adjustCirclesToZoomLevel(zoomLevel) {
+  const minRadius = (zoomLevel/3 < 2) ? 3 - (zoomLevel/3) : 1;
+  const maxRadius = (zoomLevel*7 < 37.5) ? 40 - (zoomLevel*7) : 2.5;
+  const maxZoomLevel = settings.scaleExtent[1];
+  const factor = (maxRadius-minRadius) / (settings.maxValueInData-settings.minValueInData);
 
+  g.selectAll('circle')
+  .attr('r', d => {
+    if (d.amount*factor < minRadius) {
+      return minRadius;
+    }
+    else if (d.amount*factor > maxRadius) {
+      return maxRadius;
+    }
+    else {
+      return d.amount*factor;
+    }
+  })
+  if (zoomLevel < maxZoomLevel/2) {
     g.selectAll('.datapoint')
-    .attr('r', d => {
-      if (d.amount*factor < minRadius) {
-        return minRadius;
-      }
-      else if (d.amount*factor > maxRadius) {
-        return maxRadius;
-      }
-      else {
-        return d.amount*factor;
-      }
-    })
-    if (zoomLevel < maxZoomLevel/2) {
-      g.selectAll('.datapoint')
-      .attr('fill-opacity', (.3 + .7/zoomLevel))
-    } else {
-      g.selectAll('.datapoint')
-      .attr('fill-opacity', 1)
-    }
-    easterEgg(zoomLevel, maxZoomLevel);
+    .attr('fill-opacity', (.3 + .7/zoomLevel))
+  } else {
+    g.selectAll('.datapoint')
+    .attr('fill-opacity', 1)
   }
-
-  function easterEgg(zoomLevel, maxZoomLevel) {
-    let mickey = [
-      {
-        x: 713.1922842768404,
-        y: 357.39588549979203,
-        r: 2.253807106598985      
-      },
-      {
-        x: 712.6200955348663,
-        y: 354.3623462592666,
-        r: 1  
-      },
-      {
-        x: 715.9848110800312,
-        y: 355.9852290633346,
-        r: 1  
-      }
-    ]
-
-    if (zoomLevel > maxZoomLevel /2) {
-      g
-      .selectAll('.mickey')
-      .data(mickey)
-      .enter()
-      .append('circle')
-      .attr('class', 'mickey')
-      .attr('cx', d => d.x)
-      .attr('cy', d => d.y)
-      .attr('r', d => d.r)
-      .attr('fill', 'black')
-    }
-  }
+}

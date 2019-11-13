@@ -38,3 +38,11 @@ body {
 h3 {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
+
+.g-datapoints {
+  z-index: 1;
+}
+
+.g-map {
+  z-index: 0;
+}
