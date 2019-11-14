@@ -7,16 +7,19 @@ I've tried to build it in a way this code can be used to show any kind of object
 
 ## Concept and screenshots
 The concept is to show certain objects, in this case Indonesian ancestor statues on a map. The user must be able to see where these objects come from and how many were brought from each location.
+
 *Starting scale*
 ![screenshot](./wiki-resources/screenshots/current_application_screenshot.png)
 
-*Zoomed halfway*
 As you can see in these screenshots, the amount is shown by the size of te circles and the locations are plotted on the map.
 Because some circles are plotted on top of each other, I added some opacity when zooming.
+
+*Zoomed halfway*
 ![screenshot](./wiki-resources/screenshots/current_application_screenshot2.png)
 
-*Maximal zoom*
 As you zoom in some more, the circles will shrink and lose their opacity so it's easier to see at what exact locations the statues are found.
+
+*Maximal zoom*
 ![screenshot](./wiki-resources/screenshots/current_application_screenshot3.png)
 
 Check out my [wiki](https://github.com/lennartdeknikker/functional-programming/wiki/Concept) for more information on the concept.
