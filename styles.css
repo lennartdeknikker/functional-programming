@@ -94,3 +94,7 @@ h3 {
 .sub-item-list {
   font-weight: normal;
 }
+
+.object-image {
+  width: 4em;
+}

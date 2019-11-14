@@ -127,7 +127,8 @@ function objectClickHandler(d, i) {
           <li>Image Link: <a href="${value.imageLink.value}">${value.imageLink.value}</a></li>
           <li>Origin location: ${value.placeName.value} (${value.lat.value}, ${value.long.value})</li>
         </ul>
-      </li>
+        `// <img src="${value.imageLink.value}" class="object-image" /> 
+      +`</li>
     `;
   });
 
