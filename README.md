@@ -1,7 +1,7 @@
 # Indonesian Ancestor Statues Map
 this repo contains my assignment material for the course [functional programming](https://github.com/cmda-tt/course-19-20). The assignment entails visualizing data obtained from the Museum Volkenkunde's objects database using the [D3 Library](https://github.com/d3/d3).
 
-**This current version shows all Indonesian ancestor statues on a map.**
+**The current version shows all Indonesian ancestor statues on a map.**
 
 I've tried to build it in a way this code can be used to show any kind of objects on any kind of map, keeping in mind the [key concepts of functional programming](https://github.com/lennartdeknikker/functional-programming/wiki/About-functional-programming-in-JavaScript)
 
